@@ -5,7 +5,8 @@ import axios from "axios";
 
 function App() {
   const [causes, setCauses] = useState([]);
-  const [search, setSearch] = useState("");
+  const [searchName, setSearchName] = useState("");
+  const [searchCity, setSearchCity] = useState("");
 
   useEffect(() => {
     axios
@@ -13,21 +14,53 @@ function App() {
       .then((res) => setCauses(res.data.causes));
   }, []);
 
+  const handleSearchName = () => {
+    axios
+      .get(
+        `https://api.givebacks.com/services/core/causes/search?search[name][value]=${search}`
+      )
+      .then((res) => setCauses(res.data.causes));
+  };
+
   console.log(causes);
   return (
     <div className="App">
       <header>Givebacks</header>
       <div className="search">
         <div className="search__name">
-          <label htmlFor="name-search">Search cause by name:</label>
+          <p>Search cause by name:</p>
+          <label htmlFor="name-search">Cause Name: </label>
           <input
             type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchName}
+            onChange={(e) => setSearchName(e.target.value)}
             placeholder="Enter Cause Here"
           />
+          <button
+            onClick={() => {
+              handleSearchName();
+            }}
+          >
+            Search
+          </button>
         </div>
-        <div className="search__location"></div>
+        <div className="search__location">
+          <p>Search cause by location:</p>
+          <label htmlFor="city-search"></label>
+          <input
+            type="text"
+            value={searchCity}
+            onChange={(e) => setSearchCity(e.target.value)}
+            placeholder="Enter Cause Here"
+          />
+          <button
+            onClick={() => {
+              handleSearchName();
+            }}
+          >
+            Search
+          </button>
+        </div>
       </div>
       <div className="causes">
         {causes.map((cause) => {
