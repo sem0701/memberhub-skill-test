@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import logo from "./logo.svg";
 import "./App.css";
 import axios from "axios";
 
 function App() {
   const [causes, setCauses] = useState([]);
+  const [causesLeft, setCausesLeft] = useState(false);
   const [searchName, setSearchName] = useState("");
   const [searchCity, setSearchCity] = useState("");
   const [searchState, setSearchState] = useState("");
@@ -12,7 +12,14 @@ function App() {
   useEffect(() => {
     axios
       .get("https://api.givebacks.com/services/core/causes/search")
-      .then((res) => setCauses(res.data.causes));
+      .then((res) => {
+        setCauses(res.data.causes);
+        if (res.data.meta.has_more) {
+          setCausesLeft(true);
+        } else {
+          setCausesLeft(false);
+        }
+      });
   }, []);
 
   const handleSearchName = () => {
@@ -20,7 +27,14 @@ function App() {
       .get(
         `https://api.givebacks.com/services/core/causes/search?search[name][value]=${searchName}`
       )
-      .then((res) => setCauses(res.data.causes));
+      .then((res) => {
+        setCauses(res.data.causes);
+        if (res.data.meta.has_more) {
+          setCausesLeft(true);
+        } else {
+          setCausesLeft(false);
+        }
+      });
   };
 
   const handleSearchLocation = () => {
@@ -30,29 +44,52 @@ function App() {
         .get(
           `https://api.givebacks.com/services/core/causes/search?search[city][value]=${searchCity}`
         )
-        .then((res) => setCauses(res.data.causes));
+        .then((res) => {
+          setCauses(res.data.causes);
+          if (res.data.meta.has_more) {
+            setCausesLeft(true);
+          } else {
+            setCausesLeft(false);
+          }
+        });
     } else if (!!searchState && !!searchCity === false) {
       //fetch for state
       axios
         .get(
           `https://api.givebacks.com/services/core/causes/search?search[state][value]=${searchState}`
         )
-        .then((res) => setCauses(res.data.causes));
+        .then((res) => {
+          setCauses(res.data.causes);
+          if (res.data.meta.has_more) {
+            setCausesLeft(true);
+          } else {
+            setCausesLeft(false);
+          }
+        });
     } else {
       //fetch for both
-      console.log("hit");
       axios
         .get(
           `https://api.givebacks.com/services/core/causes/search?join=AND&search[city][value]=${searchCity}&search[state][value]=${searchState}`
         )
-        .then((res) => setCauses(res.data.causes));
+        .then((res) => {
+          setCauses(res.data.causes);
+          if (res.data.meta.has_more) {
+            setCausesLeft(true);
+          } else {
+            setCausesLeft(false);
+          }
+        });
     }
   };
 
-  // console.log(!!searchState && !!searchCity);
+  console.log(causesLeft);
+
   return (
     <div className="App">
-      <header>Givebacks</header>
+      <header>
+        <h1>Givebacks Cause Search</h1>
+      </header>
 
       <div className="search">
         <div className="search__name">
@@ -102,15 +139,22 @@ function App() {
 
       <div className="causes">
         {causes.length < 1 ? (
-          <h1>No availble causes!</h1>
+          <h2>No availble causes!</h2>
         ) : (
-          causes.map((cause) => {
-            return (
-              <div className="single-cause">
-                <p>{cause.name}</p>
-              </div>
-            );
-          })
+          <>
+            {causesLeft ? (
+              <h2>{`Over ${causes.length} results:`}</h2>
+            ) : (
+              <h2>{`${causes.length} results:`}</h2>
+            )}
+            {causes.map((cause) => {
+              return (
+                <div className="single-cause" key={cause.id}>
+                  <p>{cause.name}</p>
+                </div>
+              );
+            })}
+          </>
         )}
       </div>
     </div>
