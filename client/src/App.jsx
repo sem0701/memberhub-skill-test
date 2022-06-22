@@ -22,12 +22,28 @@ function App() {
       });
   }, []);
 
-  const handleSearchName = () => {
-    axios
-      .get(
-        `https://api.givebacks.com/services/core/causes/search?search[name][value]=${searchName}`
-      )
-      .then((res) => {
+  const handleSearch = () => {
+    const baseURL = "https://api.givebacks.com/services/core/causes/search?";
+    let nameURL = "";
+    let cityURL = "";
+    let stateURL = "";
+    let count = 0;
+
+    if (searchName) {
+      nameURL = `search[name][value]=${searchName}`;
+      count++;
+    }
+    if (searchCity) {
+      cityURL = `search[city][value]=${searchCity}`;
+      count++;
+    }
+    if (searchState) {
+      stateURL = `search[state][value]=${searchState}`;
+      count++;
+    }
+
+    if (count < 2) {
+      axios.get(`${baseURL}${nameURL}${cityURL}${stateURL}`).then((res) => {
         setCauses(res.data.causes);
         if (res.data.meta.has_more) {
           setCausesLeft(true);
@@ -35,43 +51,9 @@ function App() {
           setCausesLeft(false);
         }
       });
-  };
-
-  const handleSearchLocation = () => {
-    if (!!searchCity && !!searchState === false) {
-      //fetch for city
-      axios
-        .get(
-          `https://api.givebacks.com/services/core/causes/search?search[city][value]=${searchCity}`
-        )
-        .then((res) => {
-          setCauses(res.data.causes);
-          if (res.data.meta.has_more) {
-            setCausesLeft(true);
-          } else {
-            setCausesLeft(false);
-          }
-        });
-    } else if (!!searchState && !!searchCity === false) {
-      //fetch for state
-      axios
-        .get(
-          `https://api.givebacks.com/services/core/causes/search?search[state][value]=${searchState}`
-        )
-        .then((res) => {
-          setCauses(res.data.causes);
-          if (res.data.meta.has_more) {
-            setCausesLeft(true);
-          } else {
-            setCausesLeft(false);
-          }
-        });
     } else {
-      //fetch for both
       axios
-        .get(
-          `https://api.givebacks.com/services/core/causes/search?join=AND&search[city][value]=${searchCity}&search[state][value]=${searchState}`
-        )
+        .get(`${baseURL}join=AND&${nameURL}&${cityURL}&${stateURL}`)
         .then((res) => {
           setCauses(res.data.causes);
           if (res.data.meta.has_more) {
@@ -83,7 +65,66 @@ function App() {
     }
   };
 
-  console.log(causesLeft);
+  // const handleSearchName = () => {
+  //   axios
+  //     .get(
+  //       `https://api.givebacks.com/services/core/causes/search?search[name][value]=${searchName}`
+  //     )
+  //     .then((res) => {
+  //       setCauses(res.data.causes);
+  //       if (res.data.meta.has_more) {
+  //         setCausesLeft(true);
+  //       } else {
+  //         setCausesLeft(false);
+  //       }
+  //     });
+  // };
+
+  // const handleSearchLocation = () => {
+  //   if (!!searchCity && !!searchState === false) {
+  //     //fetch for city
+  //     axios
+  //       .get(
+  //         `https://api.givebacks.com/services/core/causes/search?search[city][value]=${searchCity}`
+  //       )
+  //       .then((res) => {
+  //         setCauses(res.data.causes);
+  //         if (res.data.meta.has_more) {
+  //           setCausesLeft(true);
+  //         } else {
+  //           setCausesLeft(false);
+  //         }
+  //       });
+  //   } else if (!!searchState && !!searchCity === false) {
+  //     //fetch for state
+  //     axios
+  //       .get(
+  //         `https://api.givebacks.com/services/core/causes/search?search[state][value]=${searchState}`
+  //       )
+  //       .then((res) => {
+  //         setCauses(res.data.causes);
+  //         if (res.data.meta.has_more) {
+  //           setCausesLeft(true);
+  //         } else {
+  //           setCausesLeft(false);
+  //         }
+  //       });
+  //   } else {
+  //     //fetch for both
+  //     axios
+  //       .get(
+  //         `https://api.givebacks.com/services/core/causes/search?join=AND&search[city][value]=${searchCity}&search[state][value]=${searchState}`
+  //       )
+  //       .then((res) => {
+  //         setCauses(res.data.causes);
+  //         if (res.data.meta.has_more) {
+  //           setCausesLeft(true);
+  //         } else {
+  //           setCausesLeft(false);
+  //         }
+  //       });
+  //   }
+  // };
 
   return (
     <div className="App">
@@ -92,8 +133,7 @@ function App() {
       </header>
 
       <div className="search">
-        <div className="search__name">
-          <p>Search cause by name:</p>
+        <div className="search__bar">
           <label htmlFor="name-search">Cause Name: </label>
           <input
             type="text"
@@ -101,17 +141,6 @@ function App() {
             onChange={(e) => setSearchName(e.target.value)}
             placeholder="Enter Cause Here"
           />
-          <button
-            onClick={() => {
-              handleSearchName();
-            }}
-          >
-            Search
-          </button>
-        </div>
-
-        <div className="search__location">
-          <p>Search cause by location:</p>
           <label htmlFor="city-search">City: </label>
           <input
             type="text"
@@ -129,7 +158,7 @@ function App() {
           />
           <button
             onClick={() => {
-              handleSearchLocation();
+              handleSearch();
             }}
           >
             Search
